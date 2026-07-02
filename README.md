@@ -21,6 +21,23 @@ npm run build
 npm start
 ```
 
+## Онлайн байршуулах (Deploy)
+
+> ⚠️ **Vercel / Netlify дээр ажиллахгүй.** Тоглоом нь `server.js` custom Node
+> сервер дээр WebSocket-оор ажилладаг тул serverless/static hosting дээр
+> real-time backend ажиллах боломжгүй — хуудас ачаалагдавч "СЕРВЕРТ ХОЛБОГДОЖ
+> ЧАДСАНГҮЙ" гэж гарна.
+
+Онлайн тоглохын тулд Node процесс тасралтгүй ажиллуулдаг hosting хэрэгтэй
+(Railway, Render, Fly.io, VPS г.м):
+
+- Build: `npm install && npm run build`
+- Start: `npm start` (портыг платформын `PORT` env-ээс автоматаар авна)
+
+Эсвэл UI-г Vercel дээр үлдээгээд тоглоомын серверийг тусад нь байршуулж,
+`NEXT_PUBLIC_WS_URL=wss://tany-server.example.com/ws` env хувьсагчаар клиентэд
+зааж өгч болно.
+
 ## Удирдлага
 
 | Товч | Үйлдэл |

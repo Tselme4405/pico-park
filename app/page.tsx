@@ -102,6 +102,7 @@ export default function Home() {
     let serverFull = false;
     let everConnected = false;
     let connected = false;
+    let failedAttempts = 0;
     let raf = 0;
     let reconnectT: ReturnType<typeof setTimeout> | null = null;
     const snaps: { at: number; s: Snapshot }[] = [];
@@ -121,10 +122,14 @@ export default function Home() {
     function connect() {
       if (closed) return;
       const proto = location.protocol === "https:" ? "wss" : "ws";
-      ws = new WebSocket(`${proto}://${location.host}/ws`);
+      // The realtime backend needs a long-lived Node server; on serverless
+      // hosts point NEXT_PUBLIC_WS_URL at a separately hosted game server.
+      const url = process.env.NEXT_PUBLIC_WS_URL || `${proto}://${location.host}/ws`;
+      ws = new WebSocket(url);
       ws.onopen = () => {
         connected = true;
         everConnected = true;
+        failedAttempts = 0;
         sendInput();
       };
       ws.onmessage = (e) => {
@@ -144,6 +149,7 @@ export default function Home() {
       ws.onclose = () => {
         connected = false;
         ws = null;
+        if (!everConnected) failedAttempts++;
         if (!closed && !serverFull) reconnectT = setTimeout(connect, 1000);
       };
       ws.onerror = () => {
@@ -584,7 +590,15 @@ export default function Home() {
         return;
       }
       if (!s || !level) {
-        inkText(everConnected ? "RECONNECTING..." : "CONNECTING...", W / 2, H / 2, 30, 600, "#9aa0a8");
+        if (!everConnected && failedAttempts >= 3) {
+          inkText("СЕРВЕРТ ХОЛБОГДОЖ ЧАДСАНГҮЙ", W / 2, H / 2 - 90, 34, 700, "#e8534f");
+          inkText("Энэ тоглоом real-time WebSocket сервер шаарддаг.", W / 2, H / 2 - 30, 20, 600);
+          inkText("Vercel зэрэг static/serverless hosting дээр тоглоомын сервер ажиллах боломжгүй.", W / 2, H / 2 + 8, 18, 600, "#9aa0a8");
+          inkText("Локал дээр тоглох:  npm run dev  →  http://localhost:3000", W / 2, H / 2 + 60, 20, 600);
+          inkText("Онлайн бол Railway / Render / Fly.io гэх мэт Node hosting ашиглана уу.", W / 2, H / 2 + 98, 17, 600, "#9aa0a8");
+        } else {
+          inkText(everConnected ? "RECONNECTING..." : "CONNECTING...", W / 2, H / 2, 30, 600, "#9aa0a8");
+        }
         raf = requestAnimationFrame(draw);
         return;
       }
